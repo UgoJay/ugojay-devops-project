@@ -1,0 +1,44 @@
+---
+- name: Direct Shell Deployment Bypass
+  hosts: webservers
+  become: yes
+  tasks:
+    - name: Force Clean All Existing Repository Corruptions
+      shell: |
+        rm -f /etc/apt/sources.list.d/*
+        apt-get clean
+        rm -rf /var/lib/apt/lists/*
+    - name: Install Docker Using Native Official Canonical Script
+      shell: curl -fsSL https://docker.com | sh
+      args:
+        creates: /usr/bin/docker
+    - name: Ensure Docker Engine Is Booted
+      service:
+        name: docker
+        state: started
+        enabled: yes
+    - name: Create Web Directory Workspace
+      file:
+        path: /var/www/devops-app
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
+    - name: Local Machine Archive and Upload Bypass
+      delegate_to: localhost
+      become: no
+      shell: |
+        cd .. && tar -czf app-payload.tar.gz .
+        scp -i ~/.ssh/Ugo-demo-key.pem -o StrictHostKeyChecking=no ../app-payload.tar.gz ubuntu@100.31.46.12:/var/www/devops-app/
+        rm -f ../app-payload.tar.gz
+    - name: Extract Payload on Production Cloud Instance
+      shell: |
+        cd /var/www/devops-app
+        tar -xzf app-payload.tar.gz --strip-components=1 || tar -xzf app-payload.tar.gz
+        rm -f app-payload.tar.gz
+    - name: Orchestrate Live Production Containers
+      shell: |
+        docker compose down || true
+        docker compose up -d --build
+      args:
+        chdir: /var/www/devops-app
