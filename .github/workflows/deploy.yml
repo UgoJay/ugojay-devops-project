@@ -37,11 +37,7 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY_NEW }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ls -la ~/.ssh
-          if [ -n "${{ env.INSTANCE_IP }}" ]; then
-            ssh-keyscan -H ${{ env.INSTANCE_IP }} >> ~/.ssh/known_hosts
-          else
-            echo "WARNING: INSTANCE_IP is empty!"
-          fi
+          ssh-keyscan -H ${{ env.INSTANCE_IP }} >> ~/.ssh/known_hosts || true
 
       - name: Run Ansible Playbook Configuration
         run: |
