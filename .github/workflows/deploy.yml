@@ -26,15 +26,22 @@ jobs:
         run: |
           cd terraform
           terraform init
-          terraform apply -auto-approve
+          terraform apply -auto-approve -replace="aws_instance.app_server"
           echo "INSTANCE_IP=$(terraform output -raw target_server_public_ip)" >> $GITHUB_ENV
+          echo "New Instance IP is: $INSTANCE_IP"
 
       - name: Set up SSH Private Key
         run: |
+          echo "INSTANCE_IP is: ${{ env.INSTANCE_IP }}"
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY_NEW }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ env.INSTANCE_IP }} >> ~/.ssh/known_hosts
+          ls -la ~/.ssh
+          if [ -n "${{ env.INSTANCE_IP }}" ]; then
+            ssh-keyscan -H ${{ env.INSTANCE_IP }} >> ~/.ssh/known_hosts
+          else
+            echo "WARNING: INSTANCE_IP is empty!"
+          fi
 
       - name: Run Ansible Playbook Configuration
         run: |
