@@ -100,7 +100,7 @@ resource "aws_instance" "app_server" {
   instance_type          = "t2.micro"                    # 100% Free Tier Eligible
   subnet_id              = aws_subnet.public_subnet.id
   vpc_security_group_ids = [aws_security_group.devops_sg.id]
-  key_name               = "Ugo-demo-key"          # Key pair name from your AWS console
+  key_name               = "github-actions-key"          # Key pair name from your AWS console
 
   tags = { Name = "devops-production-target" }
 }
